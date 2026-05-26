@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda | Minimal</title>
+    <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+    <shop-navbar></shop-navbar>
+
+    <section class="hero" id="hero-section">
+        <div class="hero-content">
+            <h1>Nueva Colección</h1>
+            <p>Descubre el minimalismo en cada prenda.</p>
+            <button class="btn btn-dark" onclick="document.getElementById('products-section').scrollIntoView({behavior: 'smooth'})">Ver Productos</button>
+            <br> <br>
+            <button class="btn btn-dark"><a href="/-Proyecto_E-commerce_Lesmes_Samuel/Admin/admin.html">Admin Panel</a></button>
+        </div>
+    </section>
+
+    <main class="container" id="products-section">
+        <div class="filters">
+            <h2>Todos los productos</h2>
+            <input type="text" id="search-input" placeholder="Buscar productos...">
+        </div>
+        <div class="products-grid" id="products-container">
+            </div>
+    </main>
+    
+    <shop-cart></shop-cart>
+    
+    <footer class="shop-footer">
+        <p>&copy; 2026 Minimal Store. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/components.js"></script>
+    <script src="js/shop.js"></script>
+</body>
+</html>
