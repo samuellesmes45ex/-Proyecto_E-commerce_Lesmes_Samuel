@@ -1,0 +1,113 @@
+//¡Entendido! Prepararse para un examen técnico donde te pueden pedir modificar código en vivo requiere entender el porqué detrás de cada línea, no solo copiar y pegar.
+
+Al analizar la arquitectura de este proyecto, es fácil notar la clara distinción entre simples páginas web estáticas interconectadas y una verdadera aplicación web dinámica (SPA o Single Page Application). En este caso, al mantener todo el ecosistema en el cliente, utilizamos localStorage y eventos nativos para simular las responsabilidades de persistencia y enrutamiento, marcando una clara frontera práctica entre lo que gestiona el Frontend (interfaz, captura de eventos, renderizado de vistas) y lo que idealmente gestionaría un sistema Backend (bases de datos, APIs, autenticación segura).
+
+Aquí tienes tu Guía de Estudio Definitiva. Te explicaré cómo funciona el motor del proyecto y, lo más importante, el paso a paso exacto para que agregues un módulo nuevo si te lo piden en el examen.
+
+🧠 1. El Motor del Proyecto: Conceptos Clave
+Para dominar este código, debes entender tres pilares fundamentales que lo hacen funcionar:
+
+A. Web Components Nativos
+En lugar de usar un framework pesado, creamos nuestras propias etiquetas HTML (<admin-sidebar>, <admin-navbar>).
+
+¿Cómo funcionan? Heredan de la clase HTMLElement. Usamos el método connectedCallback() que se ejecuta automáticamente en cuanto el navegador lee la etiqueta en el HTML. Ahí adentro inyectamos la estructura visual usando this.innerHTML.
+
+¿Por qué lo usamos? Para encapsular código. Si el menú lateral cambia, solo modificas el componente y se actualiza en todas partes.
+
+B. Sistema de Eventos (CustomEvents)
+El menú lateral (Web Component) y el contenedor principal (donde se pintan los datos) están separados. ¿Cómo se hablan? A través del objeto global window.
+
+Cuando haces clic en un enlace del menú, disparamos un grito al navegador: window.dispatchEvent(new CustomEvent('changeAdminView', { detail: 'nombre_vista' })).
+
+El archivo principal (admin.js) está escuchando ese grito con window.addEventListener('changeAdminView', ...) y ejecuta la función renderView() pasándole el nombre de la vista que pediste.
+
+C. Renderizado Dinámico (SPA)
+La función renderView(view) es el cerebro de la aplicación. Contiene un bloque switch que evalúa qué vista pediste.
+
+En lugar de recargar la página y llevarte a un productos.html, simplemente toma el <div id="content-area"> y reemplaza su innerHTML con la estructura, botones y tablas correspondientes al módulo. Inmediatamente después de inyectar el HTML, le asigna los addEventListener a los botones nuevos (como Eliminar o Guardar).
+
+🛠️ 2. GUÍA DE EXAMEN: Cómo agregar un módulo nuevo paso a paso
+Si en el examen te dicen: "Agrega un módulo llamado Clientes en el panel de administrador que muestre una lista", este es el protocolo exacto que debes seguir. No falla.
+
+PASO 1: Agregar el botón en el menú lateral
+Busca la clase AdminSidebar (al inicio de admin.js) y agrega una nueva etiqueta <a> dentro del <nav>. El atributo data-view es la clave secreta.
+
+// Dentro de connectedCallback() en AdminSidebar
+<nav style="display: flex; flex-direction: column;">
+    <a class="nav-item active" data-view="dashboard" ...>Dashboard</a>
+    <a class="nav-item" data-view="productos" ...>Productos</a>
+    <a class="nav-item" data-view="pedidos" ...>Pedidos</a>
+    
+    <a class="nav-item" data-view="clientes" style="padding: 12px 20px; cursor: pointer; color: #666;">Clientes</a>
+</nav>
+
+PASO 2: Crear el "Caso" en el Enrutador
+Ve casi al final del archivo admin.js, busca la función renderView(view) y dentro del switch(view), agrega tu nuevo case antes de que se cierre el switch.
+
+function renderView(view) {
+    switch (view) {
+        case 'dashboard':
+            // ... código del dashboard
+            break;
+            
+        case 'productos':
+            // ... código de productos
+            break;
+
+        // TU NUEVO MÓDULO AQUÍ
+        case 'clientes':
+            // Aquí irá la lógica
+            break;
+    }
+}
+
+PASO 3: Inyectar la Interfaz (HTML)
+Dentro de tu nuevo case, lo primero que debes hacer es pintar la pantalla. Usarás contentArea.innerHTML.
+
+case 'clientes':
+            contentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                    <h1>Gestión de Clientes</h1>
+                    <button id="btn-add-client" style="background:#000; color:#fff; padding:10px 20px; border-radius:4px; cursor:pointer;">
+                        + Nuevo Cliente
+                    </button>
+                </div>
+                <div id="lista-clientes">
+                    </div>
+            `;
+            
+            // ¡Importante! El 'break;' siempre va al final de todo
+            break;
+
+            PASO 4: Darle vida con JavaScript (Lógica y Eventos)
+El HTML que acabas de inyectar es estático. Ahora, justo debajo del contentArea.innerHTML (pero siempre antes del break;), debes capturar los botones que acabas de crear y darles funcionalidad.
+
+case 'clientes':
+            // 1. PINTAMOS LA INTERFAZ
+            contentArea.innerHTML = `
+                <h1>Gestión de Clientes</h1>
+                <button id="btn-add-client">Sumar Cliente</button>
+            `;
+
+            // 2. AGREGAMOS LOS EVENTOS A LOS ELEMENTOS RECIÉN CREADOS
+            const btnAdd = document.getElementById('btn-add-client');
+            
+            btnAdd.addEventListener('click', () => {
+                alert('¡Botón del nuevo módulo funcionando!');
+                // Aquí podrías abrir un modal, guardar en localStorage, etc.
+            });
+
+            break; // Fin del caso 'clientes'
+
+💡 Trucos de Supervivencia para el Examen
+El orden de ejecución importa: Nunca intentes hacer un document.getElementById('btn-nuevo') antes de haber hecho el contentArea.innerHTML. Si el botón no está pintado en la pantalla, JavaScript te dará un error null al intentar capturarlo.
+
+Manejo del LocalStorage: Si te piden guardar datos del nuevo módulo, usa la misma lógica que ya aplicamos. Siempre son tres pasos:
+
+Obtener: let misDatos = JSON.parse(localStorage.getItem('clave_nueva')) || [];
+
+Modificar: misDatos.push(nuevoDato);
+
+Guardar: localStorage.setItem('clave_nueva', JSON.stringify(misDatos));
+
+Recarga Visual: Si eliminas o agregas un dato y quieres que la tabla se actualice al instante para el usuario, simplemente vuelve a llamar a la función de renderizado al final de tu evento: renderView('nombre_de_tu_vista');.
